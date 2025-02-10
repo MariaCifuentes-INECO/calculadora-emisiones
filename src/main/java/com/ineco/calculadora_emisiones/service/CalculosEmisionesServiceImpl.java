@@ -272,4 +272,54 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
 
         return sumaFerroviarioAereo;
     }
+
+    /**
+     * Cálculo del ciclo de vida del AVE con valores acumulados.
+     *
+     * @param request Valores de entrada del front.
+     * @return Lista con las emisiones acumuladas del ciclo de vida del AVE (55 valores).
+     */
+    public List<Double> cicloVidaAVEAcumulado(CreateGenericCaseRequest request) {
+        // Obtener la lista de emisiones del ciclo de vida del AVE
+        List<Double> cicloVidaAVE = cicloVidaAVE(request);
+
+        // Lista para almacenar los valores acumulados
+        List<Double> cicloVidaAVEAcumulado = new ArrayList<>();
+
+        // Variable para almacenar la suma acumulada
+        double sumaAcumulada = 0;
+
+        // Recorrer la lista de emisiones y calcular la suma acumulada
+        for (Double emision : cicloVidaAVE) {
+            sumaAcumulada += emision; // Sumar el valor actual al acumulado
+            cicloVidaAVEAcumulado.add(sumaAcumulada); // Agregar el acumulado a la lista
+        }
+
+        return cicloVidaAVEAcumulado;
+    }
+
+    /**
+     * Cálculo del ciclo de vida del AVE con valores acumulados.
+     *
+     * @param request Valores de entrada del front.
+     * @return Lista con las emisiones acumuladas del ciclo de vida del AVE (55 valores).
+     */
+    public List<Double> cicloVidaAereoAcumulado(CreateGenericCaseRequest request) {
+        // Obtener la lista de emisiones del ciclo de vida aéreo
+        List<Double> cicloVidaAereo = cicloVidaAereo(request);
+
+        // Lista para almacenar los valores acumulados
+        List<Double> cicloVidaAereoAcumulado = new ArrayList<>();
+
+        // Variable para almacenar la suma acumulada
+        double sumaAcumulada = 0;
+
+        // Recorrer la lista de emisiones y calcular la suma acumulada
+        for (Double emision : cicloVidaAereo) {
+            sumaAcumulada += emision; // Sumar el valor actual al acumulado
+            cicloVidaAereoAcumulado.add(sumaAcumulada); // Agregar el acumulado a la lista
+        }
+
+        return cicloVidaAereoAcumulado;
+    }
 }
