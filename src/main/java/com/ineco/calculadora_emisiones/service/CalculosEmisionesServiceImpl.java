@@ -190,4 +190,86 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
 
         return request.getDistanciaFerroviaria() * 10 * request.getPorcentajeFerroviario()/100;
     }
+
+    /**
+     * Cálculo del ciclo de vida del AVE.
+     *
+     * @param request Valores de entrada del front.
+     * @return Lista con las emisiones del ciclo de vida del AVE (55 valores).
+     */
+    public List<Double> cicloVidaAVE(CreateGenericCaseRequest request) {
+        List<Double> cicloVida = new ArrayList<>();
+
+        // Calcular las emisiones de construcción y dividirlas en 5 años
+        double emisionesConstruccion = emisionesConstruccionFerroviarias(request);
+        double emisionesConstruccionAnuales = emisionesConstruccion / 5;
+
+        // Agregar los primeros 5 valores (construcción)
+        for (int i = 0; i < 5; i++) {
+            cicloVida.add(emisionesConstruccionAnuales);
+        }
+
+        // Calcular las emisiones de mantenimiento
+        double emisionesMantenimiento = emisionMantenimientoFerroviaria(request);
+
+        // Agregar los siguientes 50 valores (mantenimiento)
+        for (int i = 0; i < 50; i++) {
+            cicloVida.add(emisionesMantenimiento);
+        }
+
+        return cicloVida;
+    }
+
+    /**
+     * Cálculo del ciclo de vida del transporte aéreo.
+     *
+     * @param request Valores de entrada del front.
+     * @return Lista con las emisiones del ciclo de vida del transporte aéreo (55 valores).
+     */
+    public List<Double> cicloVidaAereo(CreateGenericCaseRequest request) {
+        List<Double> cicloVida = new ArrayList<>();
+
+        // Calcular las emisiones de construcción y dividirlas en 5 años
+        double emisionesConstruccion = emisionesConstruccionAereas(request);
+        double emisionesConstruccionAnuales = emisionesConstruccion / 5;
+
+        // Agregar los primeros 5 valores (construcción)
+        for (int i = 0; i < 5; i++) {
+            cicloVida.add(emisionesConstruccionAnuales);
+        }
+
+        // Obtener las listas de emisiones de operación y mantenimiento
+        List<Double> emisionesOperacion = emisionesOperacionAerea(request);
+        List<Double> emisionesMantenimiento = emisionesMantenimientoAereo(request);
+
+        // Sumar los valores correspondientes de ambas listas y agregarlos a la lista del ciclo de vida
+        for (int i = 0; i < 50; i++) {
+            double sumaEmisiones = emisionesOperacion.get(i) + emisionesMantenimiento.get(i);
+            cicloVida.add(sumaEmisiones);
+        }
+
+        return cicloVida;
+    }
+
+    /**
+     * Cálculo de la suma del ciclo de vida ferroviario + aéreo.
+     *
+     * @param request Valores de entrada del front.
+     * @return Lista con las emisiones del ciclo de vida del transporte total (55 valores).
+     */
+    public List<Double> sumaFerroviarioAereo(CreateGenericCaseRequest request){
+        List<Double> sumaFerroviarioAereo = new ArrayList<>();
+
+        // Obtener las listas de ambos ciclos de vida
+        List<Double> cicloVidaAVE = cicloVidaAVE(request);
+        List<Double> cicloVidaAereo = cicloVidaAereo(request);
+
+        // Sumar los valores correspondientes de ambas listas y agregarlos a la lista del ciclo de vida
+        for (int i = 0; i < 55; i++) {
+            double sumaEmisiones = cicloVidaAVE.get(i) + cicloVidaAereo.get(i);
+            sumaFerroviarioAereo.add(sumaEmisiones);
+        }
+
+        return sumaFerroviarioAereo;
+    }
 }
