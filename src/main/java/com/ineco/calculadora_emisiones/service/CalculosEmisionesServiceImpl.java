@@ -179,4 +179,15 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
 
         return emisionesMantenimiento;
     }
+
+    /**
+     * Cálculo de la emisión de mantenimiento ferroviaria.
+     *
+     * @param request      Valores de entrada del front.
+     * @return Valor de la emisión de mantenimiento ferroviaria(t CO2 eq)
+     */
+    public double emisionMantenimientoFerroviaria(CreateGenericCaseRequest request) {
+
+        return request.getDistanciaFerroviaria() * 10 * request.getPorcentajeFerroviario()/100;
+    }
 }
