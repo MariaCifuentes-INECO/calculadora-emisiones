@@ -156,14 +156,35 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
     }
 
     /**
+     * Cálculo de las emisiones de operación como si la demanda fuese 100% aérea por años.
+     *
+     * @param request      Valores de entrada del front.
+     * @return Lista con las emisiones de operación por año.
+     */
+    public List<Double> emisionesOperacionTodoAereo(CreateGenericCaseRequest request) {
+        // Obtener la lista de demanda total
+        Map<String, List<Double>> proyeccion = calcularProyeccion(request);
+        List<Double> demandaTotal = proyeccion.get("proyeccionDemanda");
+
+        // Lista para almacenar las emisiones de operación aérea
+        List<Double> emisionesOperacion = new ArrayList<>();
+
+        // Recorrer la lista de demanda total y calcular las emisiones
+        for (Double demanda : demandaTotal) {
+            double emisionAnual = demanda * request.getDistanciaAerea() * FACTOR_EMISIONES_AEREAS_OP;
+            emisionesOperacion.add(emisionAnual);
+        }
+
+        return emisionesOperacion;
+    }
+
+    /**
      * Cálculo de las emisiones de mantenimiento aéreo por años.
      *
      * @param request      Valores de entrada del front.
      * @return Lista con las emisiones de mantenimiento aéreo por año.
      */
     public List<Double> emisionesMantenimientoAereo(CreateGenericCaseRequest request) {
-        double distanciaAerea = request.getDistanciaAerea(); // Distancia aérea
-
         // Obtener la lista de demanda aérea
         Map<String, List<Double>> proyeccion = calcularProyeccion(request);
         List<Double> demandaAerea = proyeccion.get("demandaAerea");
@@ -173,6 +194,29 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
 
         // Recorrer la lista de demanda aérea y calcular las emisiones
         for (Double demanda : demandaAerea) {
+            double emisionAnual = demanda * FACTOR_EMISIONES_AEREAS_MAN/1000;
+            emisionesMantenimiento.add(emisionAnual);
+        }
+
+        return emisionesMantenimiento;
+    }
+
+    /**
+     * Cálculo de las emisiones de mantenimiento aéreo, como si la demanda fuese 100% aérea, por años.
+     *
+     * @param request      Valores de entrada del front.
+     * @return Lista con las emisiones de mantenimiento aéreo por año.
+     */
+    public List<Double> emisionesMantenimientoTodoAereo(CreateGenericCaseRequest request) {
+        // Obtener la lista de demanda total
+        Map<String, List<Double>> proyeccion = calcularProyeccion(request);
+        List<Double> demandaTotal = proyeccion.get("proyeccionDemanda");
+
+        // Lista para almacenar las emisiones de operación aérea
+        List<Double> emisionesMantenimiento = new ArrayList<>();
+
+        // Recorrer la lista de demanda aérea y calcular las emisiones
+        for (Double demanda : demandaTotal) {
             double emisionAnual = demanda * FACTOR_EMISIONES_AEREAS_MAN/1000;
             emisionesMantenimiento.add(emisionAnual);
         }
@@ -252,19 +296,47 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
     }
 
     /**
+     * Cálculo del ciclo de vida del transporte aéreo, como si la demanda fuese 100% aérea.
+     *
+     * @param request Valores de entrada del front.
+     * @return Lista con las emisiones del ciclo de vida del transporte aéreo (55 valores).
+     */
+    public List<Double> cicloVidaTodoAereo(CreateGenericCaseRequest request) {
+        List<Double> cicloVida = new ArrayList<>();
+
+        // Calcular las emisiones de construcción y dividirlas en 5 años
+        double emisionesConstruccion = emisionesConstruccionAereas(request);
+        double emisionesConstruccionAnuales = emisionesConstruccion / 5;
+
+        // Agregar los primeros 5 valores (construcción)
+        for (int i = 0; i < 5; i++) {
+            cicloVida.add(emisionesConstruccionAnuales);
+        }
+
+        // Obtener las listas de emisiones de operación y mantenimiento
+        List<Double> emisionesOperacion = emisionesOperacionTodoAereo(request);
+        List<Double> emisionesMantenimiento = emisionesMantenimientoTodoAereo(request);
+
+        // Sumar los valores correspondientes de ambas listas y agregarlos a la lista del ciclo de vida
+        for (int i = 0; i < 50; i++) {
+            double sumaEmisiones = emisionesOperacion.get(i) + emisionesMantenimiento.get(i);
+            cicloVida.add(sumaEmisiones);
+        }
+
+        return cicloVida;
+    }
+
+    /**
      * Cálculo de la suma del ciclo de vida ferroviario + aéreo.
      *
      * @param request Valores de entrada del front.
+     * @param cicloVidaAVE Lista de emisiones del ciclo de vida del AVE.
+     * @param cicloVidaAereo Lista de emisiones del ciclo de vida aéreo.
      * @return Lista con las emisiones del ciclo de vida del transporte total (55 valores).
      */
-    public List<Double> sumaFerroviarioAereo(CreateGenericCaseRequest request){
+    private List<Double> sumaFerroviarioAereo(CreateGenericCaseRequest request, List<Double> cicloVidaAVE, List<Double> cicloVidaAereo) {
         List<Double> sumaFerroviarioAereo = new ArrayList<>();
 
-        // Obtener las listas de ambos ciclos de vida
-        List<Double> cicloVidaAVE = cicloVidaAVE(request);
-        List<Double> cicloVidaAereo = cicloVidaAereo(request);
-
-        // Sumar los valores correspondientes de ambas listas y agregarlos a la lista del ciclo de vida
         for (int i = 0; i < 55; i++) {
             double sumaEmisiones = cicloVidaAVE.get(i) + cicloVidaAereo.get(i);
             sumaFerroviarioAereo.add(sumaEmisiones);
@@ -274,52 +346,43 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
     }
 
     /**
-     * Cálculo del ciclo de vida del AVE con valores acumulados.
+     * Calcula la suma acumulada de una lista de emisiones.
      *
-     * @param request Valores de entrada del front.
-     * @return Lista con las emisiones acumuladas del ciclo de vida del AVE (55 valores).
+     * @param emisiones Lista de emisiones.
+     * @return Lista con las emisiones acumuladas.
      */
-    public List<Double> cicloVidaAVEAcumulado(CreateGenericCaseRequest request) {
-        // Obtener la lista de emisiones del ciclo de vida del AVE
-        List<Double> cicloVidaAVE = cicloVidaAVE(request);
-
-        // Lista para almacenar los valores acumulados
-        List<Double> cicloVidaAVEAcumulado = new ArrayList<>();
-
-        // Variable para almacenar la suma acumulada
+    private List<Double> calcularCicloVidaAcumulado(List<Double> emisiones) {
+        List<Double> acumulado = new ArrayList<>();
         double sumaAcumulada = 0;
 
-        // Recorrer la lista de emisiones y calcular la suma acumulada
-        for (Double emision : cicloVidaAVE) {
-            sumaAcumulada += emision; // Sumar el valor actual al acumulado
-            cicloVidaAVEAcumulado.add(sumaAcumulada); // Agregar el acumulado a la lista
+        for (Double emision : emisiones) {
+            sumaAcumulada += emision;
+            acumulado.add(sumaAcumulada);
         }
 
-        return cicloVidaAVEAcumulado;
+        return acumulado;
     }
 
     /**
-     * Cálculo del ciclo de vida del AVE con valores acumulados.
+     * Método unificado para obtener todos los resultados necesarios para la representación deñ gráfico GEI sistema en el front.
      *
      * @param request Valores de entrada del front.
-     * @return Lista con las emisiones acumuladas del ciclo de vida del AVE (55 valores).
+     * @return Mapa con los resultados de todos los métodos.
      */
-    public List<Double> cicloVidaAereoAcumulado(CreateGenericCaseRequest request) {
-        // Obtener la lista de emisiones del ciclo de vida aéreo
+    public Map<String, List<Double>> obtenerGraficoGEI(CreateGenericCaseRequest request) {
+        Map<String, List<Double>> resultados = new HashMap<>();
+
+        // Calcular las listas comunes una sola vez
+        List<Double> cicloVidaAVE = cicloVidaAVE(request);
         List<Double> cicloVidaAereo = cicloVidaAereo(request);
+        List<Double> cicloVidaTodoAereo = cicloVidaTodoAereo(request);
 
-        // Lista para almacenar los valores acumulados
-        List<Double> cicloVidaAereoAcumulado = new ArrayList<>();
+        // Calcular los resultados basados en las listas comunes
+        resultados.put("sumaFerroviarioAereo", sumaFerroviarioAereo(request, cicloVidaAVE, cicloVidaAereo));
+        resultados.put("cicloVidaAVEAcumulado", calcularCicloVidaAcumulado(cicloVidaAVE));
+        resultados.put("cicloVidaAereoAcumulado", calcularCicloVidaAcumulado(cicloVidaAereo));
+        resultados.put("cicloVidaTodoAereoAcumulado", calcularCicloVidaAcumulado(cicloVidaTodoAereo));
 
-        // Variable para almacenar la suma acumulada
-        double sumaAcumulada = 0;
-
-        // Recorrer la lista de emisiones y calcular la suma acumulada
-        for (Double emision : cicloVidaAereo) {
-            sumaAcumulada += emision; // Sumar el valor actual al acumulado
-            cicloVidaAereoAcumulado.add(sumaAcumulada); // Agregar el acumulado a la lista
-        }
-
-        return cicloVidaAereoAcumulado;
+        return resultados;
     }
 }
