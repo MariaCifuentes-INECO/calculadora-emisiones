@@ -328,21 +328,21 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
     }
 
     /**
-     * Cálculo de la suma del ciclo de vida ferroviario + aéreo.
+     * Cálculo de la suma del ciclo de vida ferroviario acumulado + aéreo acumulado.
      *
-     * @param cicloVidaAVE Lista de emisiones del ciclo de vida del AVE.
-     * @param cicloVidaAereo Lista de emisiones del ciclo de vida aéreo.
-     * @return Lista con las emisiones del ciclo de vida del transporte total (55 valores).
+     * @param cicloVidaAVEAcumulado Lista de emisiones acumuladas del ciclo de vida del AVE.
+     * @param cicloVidaAereoAcumulado Lista de emisiones acumuladas del ciclo de vida aéreo.
+     * @return Lista con las emisiones acumuladas del transporte total (55 valores).
      */
-    private List<Integer> sumaFerroviarioAereo(List<Double> cicloVidaAVE, List<Double> cicloVidaAereo) {
-        List<Integer> sumaFerroviarioAereo = new ArrayList<>();
+    private List<Integer> sumaFerroviarioAereoAcumulado(List<Integer> cicloVidaAVEAcumulado, List<Integer> cicloVidaAereoAcumulado) {
+        List<Integer> sumaAcumulada = new ArrayList<>();
 
         for (int i = 0; i < 55; i++) {
-            int sumaEmisiones = (int) Math.round(cicloVidaAVE.get(i) + cicloVidaAereo.get(i));
-            sumaFerroviarioAereo.add(sumaEmisiones);
+            int sumaEmisiones = cicloVidaAVEAcumulado.get(i) + cicloVidaAereoAcumulado.get(i);
+            sumaAcumulada.add(sumaEmisiones);
         }
 
-        return sumaFerroviarioAereo;
+        return sumaAcumulada;
     }
 
     /**
@@ -378,11 +378,19 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
         List<Double> cicloVidaAereo = cicloVidaAereo(request);
         List<Double> cicloVidaTodoAereo = cicloVidaTodoAereo(request);
 
-        // Calcular los resultados basados en las listas comunes
-        resultados.put("sumaFerroviarioAereo", sumaFerroviarioAereo(cicloVidaAVE, cicloVidaAereo));
-        resultados.put("cicloVidaAVEAcumulado", calcularCicloVidaAcumulado(cicloVidaAVE));
-        resultados.put("cicloVidaAereoAcumulado", calcularCicloVidaAcumulado(cicloVidaAereo));
-        resultados.put("cicloVidaTodoAereoAcumulado", calcularCicloVidaAcumulado(cicloVidaTodoAereo));
+        // Calcular las listas acumuladas
+        List<Integer> cicloVidaAVEAcumulado = calcularCicloVidaAcumulado(cicloVidaAVE);
+        List<Integer> cicloVidaAereoAcumulado = calcularCicloVidaAcumulado(cicloVidaAereo);
+        List<Integer> cicloVidaTodoAereoAcumulado = calcularCicloVidaAcumulado(cicloVidaTodoAereo);
+
+        // Calcular la suma acumulada de cicloVidaAVEAcumulado + cicloVidaAereoAcumulado
+        List<Integer> sumaFerroviarioAereoAcumulado = sumaFerroviarioAereoAcumulado(cicloVidaAVEAcumulado, cicloVidaAereoAcumulado);
+
+        // Agregar los resultados al mapa
+        resultados.put("sumaFerroviarioAereoAcumulado", sumaFerroviarioAereoAcumulado);
+        resultados.put("cicloVidaAVEAcumulado", cicloVidaAVEAcumulado);
+        resultados.put("cicloVidaAereoAcumulado", cicloVidaAereoAcumulado);
+        resultados.put("cicloVidaTodoAereoAcumulado", cicloVidaTodoAereoAcumulado);
 
         return resultados;
     }
