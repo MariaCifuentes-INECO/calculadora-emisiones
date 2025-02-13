@@ -7,5 +7,5 @@ import java.util.Map;
 
 public interface CalculosEmisionesService {
 
-    Map<String, List<Double>> obtenerGraficoGEI(CreateGenericCaseRequest request);
+    Map<String, List<Integer>> obtenerGraficoGEI(CreateGenericCaseRequest request);
 }

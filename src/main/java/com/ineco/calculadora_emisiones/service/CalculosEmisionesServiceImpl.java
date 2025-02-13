@@ -34,6 +34,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
         // Método para obtener el enum desde el string
         public static TipoTerreno fromString(String nombre) {
             for (TipoTerreno t : TipoTerreno.values()) {
+                // Use getNombre() instead of t.nombre directly
                 if (t.getNombre().equalsIgnoreCase(nombre)) {
                     return t;
                 }
@@ -72,7 +73,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
      * Cálculo de la emisión de construcción ferroviaria.
      *
      * @param request      Valores de entrada del front.
-     * @return Valor de la emisión (t CO2 eq)
+     * @return Valor de la emisión (t CO₂ eq)
      */
     public double emisionesConstruccionFerroviarias(CreateGenericCaseRequest request) {
         // Usar el método fromString para obtener el valor del enum correspondiente al tipo de terreno
@@ -85,7 +86,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
      * Cálculo de la emisión de construcción aérea.
      *
      * @param request      Valores de entrada del front.
-     * @return Valor de la emisión (t CO2 eq)
+     * @return Valor de la emisión (t CO₂ eq)
      */
     public double emisionesConstruccionAereas(CreateGenericCaseRequest request) {
         // Usar el método fromString para obtener el valor del enum correspondiente al tamaño del aeropuerto
@@ -120,7 +121,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
             demandaFerroviaria.add(demandaActual * porcentajeFerroviario);
 
             // Calcular la demanda para el próximo año
-            demandaActual *= (1 + request.getCrecimiento());
+            demandaActual *= (1 + request.getCrecimiento()/100);
         }
 
         // Devolver los resultados en un mapa
@@ -148,7 +149,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
 
         // Recorrer la lista de demanda aérea y calcular las emisiones
         for (Double demanda : demandaAerea) {
-            double emisionAnual = demanda * request.getDistanciaAerea() * FACTOR_EMISIONES_AEREAS_OP;
+            double emisionAnual = demanda * request.getDistanciaAerea() * FACTOR_EMISIONES_AEREAS_OP/1000;
             emisionesOperacion.add(emisionAnual);
         }
 
@@ -171,7 +172,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
 
         // Recorrer la lista de demanda total y calcular las emisiones
         for (Double demanda : demandaTotal) {
-            double emisionAnual = demanda * request.getDistanciaAerea() * FACTOR_EMISIONES_AEREAS_OP;
+            double emisionAnual = demanda * request.getDistanciaAerea() * FACTOR_EMISIONES_AEREAS_OP/1000;
             emisionesOperacion.add(emisionAnual);
         }
 
@@ -228,7 +229,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
      * Cálculo de la emisión de mantenimiento ferroviaria.
      *
      * @param request      Valores de entrada del front.
-     * @return Valor de la emisión de mantenimiento ferroviaria(t CO2 eq)
+     * @return Valor de la emisión de mantenimiento ferroviaria(t CO₂ eq)
      */
     public double emisionMantenimientoFerroviaria(CreateGenericCaseRequest request) {
 
@@ -246,7 +247,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
 
         // Calcular las emisiones de construcción y dividirlas en 5 años
         double emisionesConstruccion = emisionesConstruccionFerroviarias(request);
-        double emisionesConstruccionAnuales = emisionesConstruccion / 5;
+        double emisionesConstruccionAnuales =  emisionesConstruccion / 5;
 
         // Agregar los primeros 5 valores (construcción)
         for (int i = 0; i < 5; i++) {
@@ -254,7 +255,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
         }
 
         // Calcular las emisiones de mantenimiento
-        double emisionesMantenimiento = emisionMantenimientoFerroviaria(request);
+        double emisionesMantenimiento =  emisionMantenimientoFerroviaria(request);
 
         // Agregar los siguientes 50 valores (mantenimiento)
         for (int i = 0; i < 50; i++) {
@@ -271,7 +272,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
      * @return Lista con las emisiones del ciclo de vida del transporte aéreo (55 valores).
      */
     public List<Double> cicloVidaAereo(CreateGenericCaseRequest request) {
-        List<Double> cicloVida = new ArrayList<>();
+        List<Double> cicloVidaAereo = new ArrayList<>();
 
         // Calcular las emisiones de construcción y dividirlas en 5 años
         double emisionesConstruccion = emisionesConstruccionAereas(request);
@@ -279,7 +280,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
 
         // Agregar los primeros 5 valores (construcción)
         for (int i = 0; i < 5; i++) {
-            cicloVida.add(emisionesConstruccionAnuales);
+            cicloVidaAereo.add(emisionesConstruccionAnuales);
         }
 
         // Obtener las listas de emisiones de operación y mantenimiento
@@ -289,10 +290,10 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
         // Sumar los valores correspondientes de ambas listas y agregarlos a la lista del ciclo de vida
         for (int i = 0; i < 50; i++) {
             double sumaEmisiones = emisionesOperacion.get(i) + emisionesMantenimiento.get(i);
-            cicloVida.add(sumaEmisiones);
+            cicloVidaAereo.add(sumaEmisiones);
         }
 
-        return cicloVida;
+        return cicloVidaAereo;
     }
 
     /**
@@ -329,16 +330,15 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
     /**
      * Cálculo de la suma del ciclo de vida ferroviario + aéreo.
      *
-     * @param request Valores de entrada del front.
      * @param cicloVidaAVE Lista de emisiones del ciclo de vida del AVE.
      * @param cicloVidaAereo Lista de emisiones del ciclo de vida aéreo.
      * @return Lista con las emisiones del ciclo de vida del transporte total (55 valores).
      */
-    private List<Double> sumaFerroviarioAereo(CreateGenericCaseRequest request, List<Double> cicloVidaAVE, List<Double> cicloVidaAereo) {
-        List<Double> sumaFerroviarioAereo = new ArrayList<>();
+    private List<Integer> sumaFerroviarioAereo(List<Double> cicloVidaAVE, List<Double> cicloVidaAereo) {
+        List<Integer> sumaFerroviarioAereo = new ArrayList<>();
 
         for (int i = 0; i < 55; i++) {
-            double sumaEmisiones = cicloVidaAVE.get(i) + cicloVidaAereo.get(i);
+            int sumaEmisiones = (int) Math.round(cicloVidaAVE.get(i) + cicloVidaAereo.get(i));
             sumaFerroviarioAereo.add(sumaEmisiones);
         }
 
@@ -351,13 +351,13 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
      * @param emisiones Lista de emisiones.
      * @return Lista con las emisiones acumuladas.
      */
-    private List<Double> calcularCicloVidaAcumulado(List<Double> emisiones) {
-        List<Double> acumulado = new ArrayList<>();
+    private List<Integer> calcularCicloVidaAcumulado(List<Double> emisiones) {
+        List<Integer> acumulado = new ArrayList<>();
         double sumaAcumulada = 0;
 
         for (Double emision : emisiones) {
             sumaAcumulada += emision;
-            acumulado.add(sumaAcumulada);
+            acumulado.add((int) Math.round(sumaAcumulada));
         }
 
         return acumulado;
@@ -369,8 +369,9 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
      * @param request Valores de entrada del front.
      * @return Mapa con los resultados de todos los métodos.
      */
-    public Map<String, List<Double>> obtenerGraficoGEI(CreateGenericCaseRequest request) {
-        Map<String, List<Double>> resultados = new HashMap<>();
+    @Override
+    public Map<String, List<Integer>> obtenerGraficoGEI(CreateGenericCaseRequest request) {
+        Map<String, List<Integer>> resultados = new HashMap<>();
 
         // Calcular las listas comunes una sola vez
         List<Double> cicloVidaAVE = cicloVidaAVE(request);
@@ -378,7 +379,7 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
         List<Double> cicloVidaTodoAereo = cicloVidaTodoAereo(request);
 
         // Calcular los resultados basados en las listas comunes
-        resultados.put("sumaFerroviarioAereo", sumaFerroviarioAereo(request, cicloVidaAVE, cicloVidaAereo));
+        resultados.put("sumaFerroviarioAereo", sumaFerroviarioAereo(cicloVidaAVE, cicloVidaAereo));
         resultados.put("cicloVidaAVEAcumulado", calcularCicloVidaAcumulado(cicloVidaAVE));
         resultados.put("cicloVidaAereoAcumulado", calcularCicloVidaAcumulado(cicloVidaAereo));
         resultados.put("cicloVidaTodoAereoAcumulado", calcularCicloVidaAcumulado(cicloVidaTodoAereo));

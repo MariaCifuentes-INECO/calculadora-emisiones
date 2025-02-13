@@ -1,16 +1,17 @@
 package com.ineco.calculadora_emisiones.controller;
 
 import com.ineco.calculadora_emisiones.model.request.CreateGenericCaseRequest;
-import com.ineco.calculadora_emisiones.service.CalculosEmisionesService;
+import com.ineco.calculadora_emisiones.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
@@ -37,10 +38,10 @@ public class CalculatorController {
     @ApiResponse(
             responseCode = "200",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Map.class)))
-    public ResponseEntity<Map<String, List<Double>>> getGraficoGEISistema(
+    public ResponseEntity<Map<String, List<Integer>>> getGraficoGEISistema(
             @RequestBody CreateGenericCaseRequest request) {
 
-        Map<String, List<Double>> datos = calculosEmisionesService.obtenerGraficoGEI(request);
+        Map<String, List<Integer>> datos = calculosEmisionesService.obtenerGraficoGEI(request);
 
         return ResponseEntity.ok(datos);
     }
