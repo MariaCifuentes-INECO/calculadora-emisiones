@@ -381,6 +381,10 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
         List<Integer> cicloVidaAereoAcumulado = calcularCicloVidaAcumulado(cicloVidaAereo);
         List<Integer> cicloVidaTodoAereoAcumulado = calcularCicloVidaAcumulado(cicloVidaTodoAereo);
 
+        Map<String, List<Double>> proyeccion = calcularProyeccion(request);
+        List<Double> demandaAerea = proyeccion.get("demandaAerea");
+        List<Double> demandaTren = proyeccion.get("demandaFerroviaria");
+
         // Calcular la suma acumulada de cicloVidaAVEAcumulado + cicloVidaAereoAcumulado
         List<Integer> sumaFerroviarioAereoAcumulado = sumaFerroviarioAereoAcumulado(cicloVidaAVEAcumulado, cicloVidaAereoAcumulado);
 
@@ -389,6 +393,8 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
         resultados.put("cicloVidaAVEAcumulado", cicloVidaAVEAcumulado);
         resultados.put("cicloVidaAereoAcumulado", cicloVidaAereoAcumulado);
         resultados.put("cicloVidaTodoAereoAcumulado", cicloVidaTodoAereoAcumulado);
+        resultados.put("demandaTrenAcumulado", calcularCicloVidaAcumulado(demandaTren));
+        resultados.put("demandaAvionAcumulado", calcularCicloVidaAcumulado(demandaAerea));
 
         return resultados;
     }
