@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
@@ -335,14 +337,10 @@ public class CalculosEmisionesServiceImpl implements CalculosEmisionesService {
      * @return Lista con las emisiones acumuladas del transporte total (55 valores).
      */
     private List<Integer> sumaFerroviarioAereoAcumulado(List<Integer> cicloVidaAVEAcumulado, List<Integer> cicloVidaAereoAcumulado) {
-        List<Integer> sumaAcumulada = new ArrayList<>();
 
-        for (int i = 0; i < 55; i++) {
-            int sumaEmisiones = cicloVidaAVEAcumulado.get(i) + cicloVidaAereoAcumulado.get(i);
-            sumaAcumulada.add(sumaEmisiones);
-        }
-
-        return sumaAcumulada;
+        return IntStream.range(0, 55)
+                .mapToObj(i -> cicloVidaAVEAcumulado.get(i) + cicloVidaAereoAcumulado.get(i))
+                .collect(Collectors.toList());
     }
 
     /**
