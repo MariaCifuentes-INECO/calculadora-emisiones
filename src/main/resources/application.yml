@@ -3,7 +3,7 @@ spring:
   application:
     name: calculadora-emisiones
   datasource:
-    url: jdbc:mysql://localhost:3306/calculadora-emisiones
+    url: jdbc:mysql://localhost:3306/calculadoraEmisiones
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: root

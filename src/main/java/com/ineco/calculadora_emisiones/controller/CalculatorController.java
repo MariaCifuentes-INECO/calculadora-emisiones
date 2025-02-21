@@ -1,5 +1,7 @@
 package com.ineco.calculadora_emisiones.controller;
 
+import com.ineco.calculadora_emisiones.model.pojo.CompleteNetwork;
+import com.ineco.calculadora_emisiones.model.request.CreateCompleteNetworkRequest;
 import com.ineco.calculadora_emisiones.model.request.CreateGenericCaseRequest;
 import com.ineco.calculadora_emisiones.service.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +26,8 @@ public class CalculatorController {
 
     private final CalculosEmisionesService calculosEmisionesService;
 
+    private final CompleteNetworksService completeNetworksService;
+
     /**
      * Obtiene los datos necesarios para representar el gráfico GEI sistema.
      *
@@ -42,6 +46,36 @@ public class CalculatorController {
             @RequestBody CreateGenericCaseRequest request) {
 
         Map<String, List<Integer>> datos = calculosEmisionesService.obtenerGraficoGEI(request);
+
+        return ResponseEntity.ok(datos);
+    }
+
+    /**
+     * Crea la base de datos de la red completa de 2004 a 2023
+     *
+     * @param request Datos de entrada de la red completa a pasado.
+     * @return Una lista con los datos de la red completa de 2004 a 2023.
+     */
+    @PostMapping("/redCompleta")
+    @Operation(
+            operationId = "Crea la base de datos de la red completa de 2004 a 2023",
+            description = "Operación de escritura",
+            summary = "Se devuelve una lista con los datos de la red completa de 2004 a 2023.")
+    @ApiResponse(
+            responseCode = "201",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CompleteNetwork.class)))
+    @ApiResponse(
+            responseCode = "400",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class)),
+            description = "Datos introducidos incorrectos.")
+    @ApiResponse(
+            responseCode = "404",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = Void.class)),
+            description = "No se ha encontrado la demanda con el identificador indicado.")
+    public ResponseEntity<List<CompleteNetwork>> addCompleteNetwork(
+            @RequestBody List<CreateCompleteNetworkRequest> request) {
+
+        List<CompleteNetwork> datos = completeNetworksService.createCompleteNetwork(request);
 
         return ResponseEntity.ok(datos);
     }
