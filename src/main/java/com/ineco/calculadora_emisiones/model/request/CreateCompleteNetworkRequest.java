@@ -15,7 +15,17 @@ public class CreateCompleteNetworkRequest {
 
     private Integer anio;
 
+    private Integer emisionesConstruccionAVE;
+
+    private Integer emisionesMantenimientoAVE;
+
     private Integer cicloVidaAVEAcumulado;
+
+    private Integer emisionesConstruccionAereo;
+
+    private Integer emisionesOperacionAereo;
+
+    private Integer emisionesMantenimientoAereo;
 
     private Integer cicloVidaAereoAcumulado;
 

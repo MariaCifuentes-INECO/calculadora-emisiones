@@ -20,8 +20,23 @@ public class CompleteNetwork {
     @Column(name = "anio")
     private Integer anio;
 
+    @Column(name = "emisionesConstruccionAVE")
+    private Integer emisionesConstruccionAVE;
+
+    @Column(name = "emisionesMantenimientoAVE")
+    private Integer emisionesMantenimientoAVE;
+
     @Column(name = "cicloVidaAVEAcumulado")
     private Integer cicloVidaAVEAcumulado;
+
+    @Column(name = "emisionesConstruccionAereo")
+    private Integer emisionesConstruccionAereo;
+
+    @Column(name = "emisionesOperacionAereo")
+    private Integer emisionesOperacionAereo;
+
+    @Column(name = "emisionesMantenimientoAereo")
+    private Integer emisionesMantenimientoAereo;
 
     @Column(name = "cicloVidaAereoAcumulado")
     private Integer cicloVidaAereoAcumulado;

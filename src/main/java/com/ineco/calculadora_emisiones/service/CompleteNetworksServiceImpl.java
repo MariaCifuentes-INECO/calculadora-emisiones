@@ -26,7 +26,12 @@ public class CompleteNetworksServiceImpl implements CompleteNetworksService {
         requests.forEach(r -> {
             CompleteNetwork completeNetwork = CompleteNetwork.builder()
                     .anio(r.getAnio())
+                    .emisionesConstruccionAVE(r.getEmisionesConstruccionAVE())
+                    .emisionesMantenimientoAVE(r.getEmisionesMantenimientoAVE())
                     .cicloVidaAVEAcumulado(r.getCicloVidaAVEAcumulado())
+                    .emisionesConstruccionAereo(r.getEmisionesConstruccionAereo())
+                    .emisionesOperacionAereo(r.getEmisionesOperacionAereo())
+                    .emisionesMantenimientoAereo(r.getEmisionesMantenimientoAereo())
                     .cicloVidaAereoAcumulado(r.getCicloVidaAereoAcumulado())
                     .demandaAVLDAcumulada(r.getDemandaAVLDAcumulada())
                     .demandaAereaAcumulada(r.getDemandaAereaAcumulada())
