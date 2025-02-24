@@ -80,4 +80,24 @@ public class CalculatorController {
         return ResponseEntity.ok(datos);
     }
 
+    /**
+     * Obtiene los datos necesarios para representar el análisis de 2004 a 2023.
+     *
+     * @return Una listas de datos necesarios para el gráfico.
+     */
+    @GetMapping("/redCompleta")
+    @Operation(
+            operationId = "Obtener los datos necesarios para représentar el análisis de 2004 a 2023",
+            description = "Operación de lectura",
+            summary = "Se devuelve una lista de datos necesarios para el gráfico.")
+    @ApiResponse(
+            responseCode = "200",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = CompleteNetwork.class)))
+    public ResponseEntity<List<CompleteNetwork>> getRedCompletaReal(
+    ) {
+
+        List<CompleteNetwork> datos = completeNetworksService.getCompleteNetwork();
+
+        return ResponseEntity.ok(datos);
+    }
 }
